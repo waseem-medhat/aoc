@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const newline = byte(10)
@@ -14,21 +15,19 @@ func main() {
 	file, _ := os.Open("./d01/d01input.txt")
 	defer file.Close()
 
-	// numbers := []string{
-	// 	"one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-	// }
-
 	scanner := bufio.NewScanner(file)
 
-	for scanner.Scan() {
+    for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println(line)
 
 		digits := []int{}
-		for _, c := range line {
-			if d, err := strconv.Atoi(string(c)); err == nil {
+
+		for i, char := range line {
+			if d, err := strconv.Atoi(string(char)); err == nil {
 				digits = append(digits, d)
-			}
+            } else if d := findNumber(line, i); d > 0 {
+				digits = append(digits, d)
+            }
 		}
 
 		d1 := digits[0]
@@ -39,4 +38,18 @@ func main() {
 	}
 
 	fmt.Println(total)
+}
+
+func findNumber(line string, idx int) int {
+	numbers := []string{
+		"one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+	}
+
+    for i, num := range numbers {
+        if strings.Index(line[idx:], num) == 0 {
+            return i+1
+        }
+    }
+
+    return -1
 }
