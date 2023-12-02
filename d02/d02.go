@@ -22,6 +22,7 @@ func main() {
 	f, _ := os.Open("./d02/d02input.txt")
 	defer f.Close()
 	var idSum int
+	var powerSum int
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -29,14 +30,17 @@ func main() {
 
 		words := strings.Fields(line)
 		gameId := getGameId(words)
-		highest := getMostCubes(words[2:])
+		m := getMostCubes(words[2:])
 
-		if highest.red <= maxRed && highest.green <= maxGreen && highest.blue <= maxBlue {
+		if m.red <= maxRed && m.green <= maxGreen && m.blue <= maxBlue {
 			idSum += gameId
 		}
+
+		powerSum += m.red * m.blue * m.green
 	}
 
 	fmt.Println(idSum)
+	fmt.Println(powerSum)
 }
 
 // getGameId takes a slice of words (returned from strings.Fields) and returns
