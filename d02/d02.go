@@ -46,12 +46,8 @@ func main() {
 // getGameId takes a slice of words (returned from strings.Fields) and returns
 // the ID of the game as an int
 func getGameId(words []string) int {
-	if words[0] != "Game" {
-		panic("Line does not start with 'Game'")
-	}
+	idString := strings.TrimSuffix(words[1], ":")
 
-	idWithColon := words[1]
-	idString := idWithColon[:len(idWithColon)-1]
 	if d, err := strconv.Atoi(idString); err == nil {
 		return d
 	}
@@ -66,31 +62,24 @@ func getMostCubes(cubesLine []string) MostCubes {
 	var mostCubes MostCubes
 
 	for i, w := range cubesLine {
-		switch w {
-		case "red", "red,", "red;":
+		color := strings.TrimSuffix(strings.TrimSuffix(w, ","), ";")
+
+		switch color {
+		case "red":
 			r, err := strconv.Atoi(cubesLine[i-1])
-			if err != nil {
-				panic("Unexpected value before red")
-			}
-			if r > mostCubes.red {
+			if err == nil && r > mostCubes.red {
 				mostCubes.red = r
 			}
 
-		case "blue", "blue,", "blue;":
+		case "blue":
 			b, err := strconv.Atoi(cubesLine[i-1])
-			if err != nil {
-				panic("Unexpected value before blue")
-			}
-			if b > mostCubes.blue {
+			if err == nil && b > mostCubes.blue {
 				mostCubes.blue = b
 			}
 
-		case "green", "green,", "green;":
+		case "green":
 			g, err := strconv.Atoi(cubesLine[i-1])
-			if err != nil {
-				panic("Unexpected value before green")
-			}
-			if g > mostCubes.green {
+			if err == nil && g > mostCubes.green {
 				mostCubes.green = g
 			}
 		}
