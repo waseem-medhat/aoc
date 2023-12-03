@@ -32,18 +32,20 @@ func main() {
 			num = append(num, b)
 
 			// start of a number, check its left (and diagonal left)
-			if len(num) == 1 && checkLeft(f, i) {
-				isPartNum = true
+			if len(num) == 1 {
+				if checkLeft(f, i) || checkTopLeft(f, i) || checkBottomLeft(f, i) {
+					isPartNum = true
+				}
 			}
 
 			// middle of number, check its top and bottom
-			if checkTopBottom(f, i) {
+			if checkTop(f, i) || checkBottom(f, i) {
 				isPartNum = true
 			}
 
 		} else if len(num) > 0 {
 			// we're at the right of a number
-			if checkRight(f, i-1) {
+			if checkRight(f, i-1) || checkTopRight(f, i-1) || checkBottomRight(f, i-1) {
 				isPartNum = true
 			}
 
@@ -60,79 +62,87 @@ func main() {
 	fmt.Println(partNumSum)
 }
 
-// checkTopBottom takes a file (byte slice) and an index and checks if any of
-// characters on the top and bottom of the ith character (if any) is a symbol,
-// returning a bool
-func checkTopBottom(f []byte, i int) bool {
-	// default values are dots to evaluate to false in the last comparison
+// checkTop takes a file (byte slice) and an index and checks if the character
+// on top of the ith character (if any) is a symbol, returning a bool
+func checkTop(f []byte, i int) bool {
 	tChar := dot
-	bChar := dot
-
-	// top
 	if i > lineWidth {
 		tChar = f[i-lineWidth]
 	}
+	return isSymbol(tChar)
+}
 
-	// bottom left
+// checkBottom takes a file (byte slice) and an index and checks if the
+// character below the ith character (if any) is a symbol, returning a bool
+func checkBottom(f []byte, i int) bool {
+	bChar := dot
 	if (i + lineWidth) < (len(f) - 1) {
 		bChar = f[i+lineWidth]
 	}
-
-	return isSymbol(tChar) || isSymbol(bChar)
+	return isSymbol(bChar)
 }
 
-// checkLeft takes a file (byte slice) and an index and checks if any of
-// characters on the left of the ith character (including top left and bottom
-// left if any) is a symbol, returning a bool
+// checkLeft takes a file (byte slice) and an index and checks if the character
+// to the left of the ith characte is a symbol, returning a bool
 func checkLeft(f []byte, i int) bool {
-	// default values are dots to evaluate to false in the last comparison
 	lChar := dot
-	tlChar := dot
-	blChar := dot
-
-	// left
 	if i > 0 {
 		lChar = f[i-1]
 	}
+	return isSymbol(lChar)
+}
 
-	// top left
+// checkTopLeft takes a file (byte slice) and an index and checks if the
+// character on the top left of the ith character is a symbol, returning a bool
+func checkTopLeft(f []byte, i int) bool {
+	tlChar := dot
 	if i > lineWidth {
 		tlChar = f[i-lineWidth-1]
 	}
+	return isSymbol(tlChar)
+}
 
-	// bottom left
+// checkBottomLeft takes a file (byte slice) and an index and checks if the
+// character on the bottome left of the ith character is a symbol, returning a
+// bool
+func checkBottomLeft(f []byte, i int) bool {
+	blChar := dot
 	if (i + lineWidth) < (len(f) - 1) {
 		blChar = f[i+lineWidth-1]
 	}
-
-	return isSymbol(lChar) || isSymbol(tlChar) || isSymbol(blChar)
+	return isSymbol(blChar)
 }
 
-// checkRight takes a file (byte slice) and an index and checks if any of
-// characters on the right of the ith character (including top right and bottom
-// right if any) is a symbol, returning a bool
+// checkRight takes a file (byte slice) and an index and checks if the
+// character on the right of the ith character is a symbol, returning a bool
 func checkRight(f []byte, i int) bool {
-	// default values are dots to evaluate to false in the last comparison
 	rChar := dot
-	trChar := dot
-	brChar := dot
-
-	// right
 	if i < len(f)-1 {
 		rChar = f[i+1]
 	}
+	return isSymbol(rChar)
+}
 
-	// top right
+// checkTopRight takes a file (byte slice) and an index and checks if the
+// character on the top right of the ith character is a symbol, returning a
+// bool
+func checkTopRight(f []byte, i int) bool {
+	trChar := dot
 	if i > lineWidth {
 		trChar = f[i-lineWidth+1]
 	}
+	return isSymbol(trChar)
+}
 
-	// bottom right
+// checkBottomRight takes a file (byte slice) and an index and checks if the
+// character on the bottom right of the ith character is a symbol, returning a
+// bool
+func checkBottomRight(f []byte, i int) bool {
+	brChar := dot
 	if (i + lineWidth) < (len(f) - 1) {
 		brChar = f[i+lineWidth+1]
 	}
-
-	return isSymbol(rChar) || isSymbol(trChar) || isSymbol(brChar)
+	return isSymbol(brChar)
 }
 
 func isDigit(b byte) bool {
@@ -141,4 +151,8 @@ func isDigit(b byte) bool {
 
 func isSymbol(b byte) bool {
 	return !(isDigit(b) || b == dot)
+}
+
+func isAsterisk(b byte) bool {
+	return b == asterisk
 }
