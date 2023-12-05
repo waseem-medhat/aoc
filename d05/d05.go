@@ -14,8 +14,8 @@ func main() {
 	// f, _ := os.Open("d05/d05test.txt")
 	f, _ := os.Open("d05/d05input.txt")
 
-	numMap := map[int]int{}
-	nums := []int{}
+	var nums []int
+    var updated []bool
 
 	scanner := bufio.NewScanner(f)
 	for lineNum := 0; scanner.Scan(); lineNum++ {
@@ -26,25 +26,20 @@ func main() {
 			continue
 		}
 
-		if lineNum == 1 {
+		if lineNum == 1 || strings.HasSuffix(line, "map:") || line == "" {
+            updated = make([]bool, len(nums))
 			continue
 		}
 
-		if strings.HasSuffix(line, "map:") {
-			numMap = map[int]int{}
-			continue
-		}
+		dstStart, srcStart, length := parseLine(line)
+		diff := dstStart - srcStart
 
-		if line == "" {
-			for i, num := range nums {
-				if newNum, ok := numMap[num]; ok {
-					nums[i] = newNum
-				}
+		for i, n := range nums {
+			if !updated[i] && n >= srcStart && n < srcStart+length {
+				nums[i] += diff
+                updated[i] = true
 			}
-			continue
 		}
-
-		numMap = buildMap(numMap, line)
 	}
 
 	fmt.Println(slices.Min(nums))
@@ -61,9 +56,7 @@ func getSeeds(line string) (seeds []int) {
 	return seeds
 }
 
-func buildMap(numMap map[int]int, line string) map[int]int {
-	var newMap = numMap
-
+func parseLine(line string) (int, int, int) {
 	fields := strings.Fields(line)
 	if len(fields) != 3 {
 		log.Fatal("Unexpected input line while building a map")
@@ -84,9 +77,5 @@ func buildMap(numMap map[int]int, line string) map[int]int {
 		log.Fatal(err)
 	}
 
-	for i := 0; i < length; i++ {
-		newMap[srcStart+i] = dstStart + i
-	}
-
-	return newMap
+	return dstStart, srcStart, length
 }
