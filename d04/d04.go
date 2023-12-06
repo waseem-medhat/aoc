@@ -17,10 +17,10 @@ func main() {
 
 	score := 0.0
 	dups := map[int]int{}
-    nCards := 0
+	nCards := 0
 
 	for i := 1; scanner.Scan(); i++ {
-        dups[i]++
+		dups[i]++
 		line := scanner.Text()
 
 		numSets := strings.Split(line[numStart:], " | ")
@@ -44,9 +44,9 @@ func main() {
 		}
 	}
 
-    for _, n := range dups {
-        nCards += n
-    }
+	for _, n := range dups {
+		nCards += n
+	}
 
 	fmt.Println(score)
 	fmt.Println(nCards)
