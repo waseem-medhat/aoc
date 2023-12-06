@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -59,25 +59,39 @@ func main() {
 		"humidity-to-location",
 	}
 
-	for i := range nums {
-	mapLoop:
-		for _, mapName := range mapSeq {
-            // fmt.Println(len(maps[mapName]))
-			for _, row := range maps[mapName] {
-				dstStart := row[0]
-				srcStart := row[1]
-				length := row[2]
-				diff := dstStart - srcStart
+	minLocation := math.Inf(1)
+	for seedNumIdx := 0; seedNumIdx < len(nums)-1; seedNumIdx += 2 {
+		firstNum := nums[seedNumIdx]
+		lastNum := firstNum + nums[seedNumIdx+1]
 
-				if nums[i] >= srcStart && nums[i] < srcStart+length {
-					nums[i] += diff
-					continue mapLoop
+		for num := firstNum; num < lastNum; num++ {
+			fmt.Println("Checking seed num: ", num)
+
+			// number updating
+            updatedNum := num
+		mapLoop:
+			for _, mapName := range mapSeq {
+				for _, row := range maps[mapName] {
+					dstStart := row[0]
+					srcStart := row[1]
+					length := row[2]
+					diff := dstStart - srcStart
+
+					if updatedNum >= srcStart && updatedNum < srcStart+length {
+						updatedNum += diff
+						continue mapLoop
+					}
 				}
+			}
+
+			// number finished updating: check location
+			if float64(updatedNum) < minLocation {
+				minLocation = float64(updatedNum)
 			}
 		}
 	}
 
-	fmt.Println(slices.Min(nums))
+    fmt.Println(minLocation)
 }
 
 func getSeeds(line string) (seeds []int) {
