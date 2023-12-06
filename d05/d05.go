@@ -15,10 +15,15 @@ func main() {
 	f, _ := os.Open("d05/d05input.txt")
 
 	var nums []int
-    var updated []bool
+	maps := map[string][][3]int{}
+
+	newMap := [][3]int{}
+	newMapName := ""
 
 	scanner := bufio.NewScanner(f)
-	for lineNum := 0; scanner.Scan(); lineNum++ {
+	scanning := true
+	for lineNum := 0; scanning; lineNum++ {
+		scanning = scanner.Scan()
 		line := scanner.Text()
 
 		if lineNum == 0 {
@@ -26,18 +31,48 @@ func main() {
 			continue
 		}
 
-		if lineNum == 1 || strings.HasSuffix(line, "map:") || line == "" {
-            updated = make([]bool, len(nums))
+		if lineNum == 1 {
 			continue
 		}
 
-		dstStart, srcStart, length := parseLine(line)
-		diff := dstStart - srcStart
+		if strings.HasSuffix(line, "map:") {
+			newMapName = strings.Fields(line)[0]
+			newMap = [][3]int{}
+			continue
+		}
 
-		for i, n := range nums {
-			if !updated[i] && n >= srcStart && n < srcStart+length {
-				nums[i] += diff
-                updated[i] = true
+		if line == "" || !scanning {
+			maps[newMapName] = newMap
+			continue
+		}
+
+		newMap = append(newMap, parseLine(line))
+	}
+
+	mapSeq := []string{
+		"seed-to-soil",
+		"soil-to-fertilizer",
+		"fertilizer-to-water",
+		"water-to-light",
+		"light-to-temperature",
+		"temperature-to-humidity",
+		"humidity-to-location",
+	}
+
+	for i := range nums {
+	mapLoop:
+		for _, mapName := range mapSeq {
+            // fmt.Println(len(maps[mapName]))
+			for _, row := range maps[mapName] {
+				dstStart := row[0]
+				srcStart := row[1]
+				length := row[2]
+				diff := dstStart - srcStart
+
+				if nums[i] >= srcStart && nums[i] < srcStart+length {
+					nums[i] += diff
+					continue mapLoop
+				}
 			}
 		}
 	}
@@ -56,7 +91,7 @@ func getSeeds(line string) (seeds []int) {
 	return seeds
 }
 
-func parseLine(line string) (int, int, int) {
+func parseLine(line string) [3]int {
 	fields := strings.Fields(line)
 	if len(fields) != 3 {
 		log.Fatal("Unexpected input line while building a map")
@@ -77,5 +112,5 @@ func parseLine(line string) (int, int, int) {
 		log.Fatal(err)
 	}
 
-	return dstStart, srcStart, length
+	return [3]int{dstStart, srcStart, length}
 }
