@@ -11,8 +11,12 @@ import (
 )
 
 func main() {
-	// f, _ := os.Open("d05/d05test.txt")
-	f, _ := os.Open("d05/d05input.txt")
+	f, _ := os.Open("d05/d05test.txt")
+	// f, _ := os.Open("d05/d05input.txt")
+    
+    // fmt.Println(math.MaxUint32)
+    // fmt.Println(math.MaxInt)
+    // os.Exit(0)
 
 	nums, maps := parseAlmanac(f)
 	minLocation := math.Inf(1)
@@ -35,45 +39,45 @@ func main() {
 	fmt.Println(minLocation)
 }
 
-func getSeeds(line string) (seeds []int) {
+func getSeeds(line string) (seeds []uint32) {
 	for _, seedStr := range strings.Fields(line)[1:] {
-		seed, err := strconv.Atoi(seedStr)
+		seed, err := strconv.ParseUint(seedStr, 10, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
-		seeds = append(seeds, seed)
+		seeds = append(seeds, uint32(seed))
 	}
 	return seeds
 }
 
-func parseLine(line string) [3]int {
+func parseLine(line string) [3]uint32 {
 	fields := strings.Fields(line)
 	if len(fields) != 3 {
 		log.Fatal("Unexpected input line while building a map")
 	}
 
-	dstStart, err := strconv.Atoi(fields[0])
+	dstStart, err := strconv.ParseUint(fields[0], 10, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	srcStart, err := strconv.Atoi(fields[1])
+	srcStart, err := strconv.ParseUint(fields[1], 10, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	length, err := strconv.Atoi(fields[2])
+	length, err := strconv.ParseUint(fields[2], 10, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return [3]int{dstStart, srcStart, length}
+	return [3]uint32{uint32(dstStart), uint32(srcStart), uint32(length)}
 }
 
-func parseAlmanac(f *os.File) ([]int, map[string][][3]int) {
-	nums := []int{}
-	maps := map[string][][3]int{}
-	newMap := [][3]int{}
+func parseAlmanac(f *os.File) ([]uint32, map[string][][3]uint32) {
+	nums := []uint32{}
+	maps := map[string][][3]uint32{}
+	newMap := [][3]uint32{}
 	newMapName := ""
 
 	scanner := bufio.NewScanner(f)
@@ -93,7 +97,7 @@ func parseAlmanac(f *os.File) ([]int, map[string][][3]int) {
 
 		if strings.HasSuffix(line, "map:") {
 			newMapName = strings.Fields(line)[0]
-			newMap = [][3]int{}
+			newMap = [][3]uint32{}
 			continue
 		}
 
@@ -108,7 +112,7 @@ func parseAlmanac(f *os.File) ([]int, map[string][][3]int) {
 	return nums, maps
 }
 
-func lookupNum(num int, maps *map[string][][3]int) int {
+func lookupNum(num uint32, maps *map[string][][3]uint32) uint32 {
     fmt.Println("Checking seed num: ", num)
 
 	// number updating
