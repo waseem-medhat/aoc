@@ -4,142 +4,130 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	f, _ := os.Open("d05/d05test.txt")
-	// f, _ := os.Open("d05/d05input.txt")
-    
-    // fmt.Println(math.MaxUint32)
-    // fmt.Println(math.MaxInt)
-    // os.Exit(0)
+	seeds, mappers := parseAlmanac("d05/d05input.txt")
+    fmt.Println(mappers)
 
-	nums, maps := parseAlmanac(f)
-	minLocation := math.Inf(1)
+    minSeed := seeds[0]
 
-	for seedNumIdx := 0; seedNumIdx < len(nums)-1; seedNumIdx += 2 {
-		firstNum := nums[seedNumIdx]
-		lastNum := firstNum + nums[seedNumIdx+1]
+	for i := 0; i < len(seeds)-1; i += 2 {
+        sInit := seeds[i]
+        sMax := sInit + seeds[i+1]
 
-		for num := firstNum; num < lastNum; num++ {
+        for seed := sInit; seed < sMax; seed++ {
+            fmt.Println("checking: ", seed)
+            newSeed := seed
 
-            updatedNum := lookupNum(num, &maps)
+			for _, mapper := range mappers {
+                newSeed = mapper(newSeed)
+			}
 
-			// number finished updating: check location
-			if float64(updatedNum) < minLocation {
-				minLocation = float64(updatedNum)
+			if newSeed < minSeed {
+				minSeed = newSeed
 			}
 		}
 	}
 
-	fmt.Println(minLocation)
+	fmt.Println(minSeed)
 }
 
-func getSeeds(line string) (seeds []uint32) {
-	for _, seedStr := range strings.Fields(line)[1:] {
-		seed, err := strconv.ParseUint(seedStr, 10, 0)
+// getSeeds takes a the seeds line and parses the numbers
+func getSeeds(line string) []int {
+	seedNums := []int{}
+	seedStrings := strings.Fields(line)[1:]
+
+	for _, s := range seedStrings {
+		seedNum, err := strconv.Atoi(s)
 		if err != nil {
+			fmt.Println("Unexpected seed string!")
 			log.Fatal(err)
 		}
-		seeds = append(seeds, uint32(seed))
+		seedNums = append(seedNums, seedNum)
 	}
-	return seeds
+
+	return seedNums
 }
 
-func parseLine(line string) [3]uint32 {
-	fields := strings.Fields(line)
-	if len(fields) != 3 {
-		log.Fatal("Unexpected input line while building a map")
-	}
+// getRule takes a line and builds a mapper rule from it
+func getRule(line string) [3]int {
+	lineFields := strings.Fields(line)
 
-	dstStart, err := strconv.ParseUint(fields[0], 10, 0)
+	dstStart, err := strconv.Atoi(lineFields[0])
 	if err != nil {
+		fmt.Println("Unexpected rule string!")
 		log.Fatal(err)
 	}
 
-	srcStart, err := strconv.ParseUint(fields[1], 10, 0)
+	srcStart, err := strconv.Atoi(lineFields[1])
 	if err != nil {
+		fmt.Println("Unexpected rule string!")
 		log.Fatal(err)
 	}
 
-	length, err := strconv.ParseUint(fields[2], 10, 0)
+	length, err := strconv.Atoi(lineFields[2])
 	if err != nil {
+		fmt.Println("Unexpected rule string!")
 		log.Fatal(err)
 	}
 
-	return [3]uint32{uint32(dstStart), uint32(srcStart), uint32(length)}
+	return [3]int{dstStart, srcStart, length}
 }
 
-func parseAlmanac(f *os.File) ([]uint32, map[string][][3]uint32) {
-	nums := []uint32{}
-	maps := map[string][][3]uint32{}
-	newMap := [][3]uint32{}
-	newMapName := ""
+// buildMapper takes a ruleset and makes a corresponding mapper function
+func buildMapper(ruleset [][3]int) func(int) int {
+	return func(n int) int {
+		for _, rule := range ruleset {
+			dstStart := rule[0]
+			srcStart := rule[1]
+			length := rule[2]
+			diff := dstStart - srcStart
 
-	scanner := bufio.NewScanner(f)
-	scanning := true
-	for lineNum := 0; scanning; lineNum++ {
-		scanning = scanner.Scan()
-		line := scanner.Text()
-
-		if lineNum == 0 {
-			nums = getSeeds(line)
-			continue
+			if n >= srcStart && n < srcStart+length {
+				return n + diff
+			}
 		}
 
-		if lineNum == 1 {
+		return n
+	}
+}
+
+func parseAlmanac(path string) ([]int, []func(int) int) {
+	f, _ := os.Open(path)
+	defer f.Close()
+
+	var seeds []int
+	var ruleset [][3]int
+	var mappers []func(int) int
+
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		line := s.Text()
+
+		if strings.HasPrefix(line, "seeds:") {
+			seeds = getSeeds(line)
 			continue
 		}
 
 		if strings.HasSuffix(line, "map:") {
-			newMapName = strings.Fields(line)[0]
-			newMap = [][3]uint32{}
+			ruleset = [][3]int{}
 			continue
 		}
 
-		if line == "" || !scanning {
-			maps[newMapName] = newMap
+		if line == "" {
+			mappers = append(mappers, buildMapper(ruleset))
 			continue
 		}
 
-		newMap = append(newMap, parseLine(line))
+		ruleset = append(ruleset, getRule(line))
 	}
 
-	return nums, maps
-}
+	// has to be called separately at EOF due to the lack of empty line
+	mappers = append(mappers, buildMapper(ruleset))
 
-func lookupNum(num uint32, maps *map[string][][3]uint32) uint32 {
-    fmt.Println("Checking seed num: ", num)
-
-	// number updating
-	mapSeq := []string{
-		"seed-to-soil",
-		"soil-to-fertilizer",
-		"fertilizer-to-water",
-		"water-to-light",
-		"light-to-temperature",
-		"temperature-to-humidity",
-		"humidity-to-location",
-	}
-
-mapLoop:
-	for _, mapName := range mapSeq {
-		for _, row := range (*maps)[mapName] {
-			dstStart := row[0]
-			srcStart := row[1]
-			length := row[2]
-			diff := dstStart - srcStart
-
-			if num >= srcStart && num < srcStart+length {
-				num += diff
-				continue mapLoop
-			}
-		}
-	}
-
-	return num
+	return seeds, mappers
 }
