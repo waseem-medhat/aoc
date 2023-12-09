@@ -7,33 +7,38 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 )
 
 func main() {
+	start := time.Now()
 	seeds, mappers := parseAlmanac("d05/d05input.txt")
-    fmt.Println(mappers)
 
-    minSeed := seeds[0]
+	minSeed := seeds[0]
+	var wg sync.WaitGroup
 
 	for i := 0; i < len(seeds)-1; i += 2 {
-        sInit := seeds[i]
-        sMax := sInit + seeds[i+1]
+		for seed := seeds[i]; seed < seeds[i]+seeds[i+1]; seed++ {
 
-        for seed := sInit; seed < sMax; seed++ {
-            fmt.Println("checking: ", seed)
-            newSeed := seed
+			wg.Add(1)
+			go func(seed int) {
+				defer wg.Done()
 
-			for _, mapper := range mappers {
-                newSeed = mapper(newSeed)
-			}
+				for _, mapper := range mappers {
+					seed = mapper(seed)
+				}
 
-			if newSeed < minSeed {
-				minSeed = newSeed
-			}
+				if seed < minSeed {
+					minSeed = seed
+				}
+			}(seed)
 		}
 	}
 
+	wg.Wait()
 	fmt.Println(minSeed)
+	fmt.Println(time.Since(start))
 }
 
 // getSeeds takes a the seeds line and parses the numbers
@@ -82,16 +87,10 @@ func getRule(line string) [3]int {
 func buildMapper(ruleset [][3]int) func(int) int {
 	return func(n int) int {
 		for _, rule := range ruleset {
-			dstStart := rule[0]
-			srcStart := rule[1]
-			length := rule[2]
-			diff := dstStart - srcStart
-
-			if n >= srcStart && n < srcStart+length {
-				return n + diff
+			if n >= rule[1] && n < rule[1]+rule[2] {
+				return n + rule[0] - rule[1]
 			}
 		}
-
 		return n
 	}
 }
