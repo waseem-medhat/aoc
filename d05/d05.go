@@ -24,7 +24,7 @@ func main() {
 	}
 
 	calcRanges := []numRange{ranges[0]}
-	for i, rs := range rulesets {
+	for _, rs := range rulesets {
 		nRanges := len(calcRanges)
 		for j := 0; j < nRanges; j++ {
 			result := applyRuleset(calcRanges[0], rs)
@@ -32,9 +32,7 @@ func main() {
 			calcRanges = append(calcRanges, result...)
 		}
 
-		if i == 1 {
-			continue
-		}
+		fmt.Println(calcRanges)
 	}
 
 	var min int
