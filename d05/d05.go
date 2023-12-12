@@ -7,37 +7,76 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
+type rule struct {
+	srcStart int
+	srcEnd   int
+	dstStart int
+	dstEnd   int
+}
+
+type numRange struct {
+	start int
+	end   int
+}
+
 func main() {
 	start := time.Now()
-	seeds, mappers := parseAlmanac("d05/d05input.txt")
+	seeds, rulesets := parseAlmanac("d05/d05test.txt")
+	// seeds, mappers := parseAlmanac("d05/d05input.txt")
 
-	minSeed := seeds[0]
-	var wg sync.WaitGroup
-
+	// build ranges from seed numebrs
+	ranges := []numRange{}
 	for i := 0; i < len(seeds)-1; i += 2 {
-		for seed := seeds[i]; seed < seeds[i]+seeds[i+1]; seed++ {
+		ranges = append(ranges, numRange{seeds[i], seeds[i] + seeds[i+1] - 1})
+	}
 
-			wg.Add(1)
-			go func(seed int) {
-				defer wg.Done()
+    fmt.Println(rulesets[4])
+	fmt.Println(
+		matchRuleset(numRange{74, 87}, rulesets[4]),
+	)
+	os.Exit(0)
 
-				for _, mapper := range mappers {
-					seed = mapper(seed)
-				}
+	calcRanges := []numRange{}
+	// for len(ranges) > 0 {
+	// 	// pop off a seed range
+	// 	sr := ranges[0]
+	// 	ranges = ranges[1:]
+	//
+	// 	// intermediate to apply every ruleset
+	// 	intmRanges := []numRange{sr}
+	// 	fmt.Println("Starting with intm ranges:", intmRanges)
+	//
+	// 	for _, rs := range rulesets {
+	// 		fmt.Println(intmRanges, "before next calc")
+	// 		newIntmRanges := []numRange{}
+	//
+	// 		// rule matching
+	//
+	// 		newIntmRanges = append(newIntmRanges, tempIntmRanges...)
+	//
+	// 		// temp didn't receive new ranges, so no matching to be done
+	// 		if len(tempIntmRanges) == 0 || len(toCheck) == 0 {
+	// 			intmRanges = newIntmRanges
+	// 			break
+	// 		}
+	//
+	// 		fmt.Println("Ruleset end, intm ranges:", intmRanges)
+	// 	}
+	//
+	// 	calcRanges = append(calcRanges, intmRanges...)
+	// }
 
-				if seed < minSeed {
-					minSeed = seed
-				}
-			}(seed)
+	var min int
+	for i, r := range calcRanges {
+		if i == 0 || r.start < min {
+			min = r.start
 		}
 	}
 
-	wg.Wait()
-	fmt.Println(minSeed)
+	fmt.Println("\nmin:", min)
 	fmt.Println(time.Since(start))
 }
 
@@ -59,7 +98,7 @@ func getSeeds(line string) []int {
 }
 
 // getRule takes a line and builds a mapper rule from it
-func getRule(line string) [3]int {
+func getRule(line string) rule {
 	lineFields := strings.Fields(line)
 
 	dstStart, err := strconv.Atoi(lineFields[0])
@@ -80,28 +119,22 @@ func getRule(line string) [3]int {
 		log.Fatal(err)
 	}
 
-	return [3]int{dstStart, srcStart, length}
-}
-
-// buildMapper takes a ruleset and makes a corresponding mapper function
-func buildMapper(ruleset [][3]int) func(int) int {
-	return func(n int) int {
-		for _, rule := range ruleset {
-			if n >= rule[1] && n < rule[1]+rule[2] {
-				return n + rule[0] - rule[1]
-			}
-		}
-		return n
+	return rule{
+		srcStart: srcStart,
+		srcEnd:   srcStart + length - 1,
+		dstStart: dstStart,
+		dstEnd:   dstStart + length - 1,
 	}
 }
 
-func parseAlmanac(path string) ([]int, []func(int) int) {
+func parseAlmanac(path string) ([]int, [][]rule) {
 	f, _ := os.Open(path)
 	defer f.Close()
 
 	var seeds []int
-	var ruleset [][3]int
-	var mappers []func(int) int
+	var ruleset []rule
+	// var mappers []func(int) int
+	var rulesets [][]rule
 
 	s := bufio.NewScanner(f)
 	for s.Scan() {
@@ -109,16 +142,18 @@ func parseAlmanac(path string) ([]int, []func(int) int) {
 
 		if strings.HasPrefix(line, "seeds:") {
 			seeds = getSeeds(line)
+			s.Scan() // skip the next (empty) line
 			continue
 		}
 
 		if strings.HasSuffix(line, "map:") {
-			ruleset = [][3]int{}
+			ruleset = []rule{}
 			continue
 		}
 
 		if line == "" {
-			mappers = append(mappers, buildMapper(ruleset))
+			// mappers = append(mappers, buildMapper(ruleset))
+			rulesets = append(rulesets, ruleset)
 			continue
 		}
 
@@ -126,7 +161,70 @@ func parseAlmanac(path string) ([]int, []func(int) int) {
 	}
 
 	// has to be called separately at EOF due to the lack of empty line
-	mappers = append(mappers, buildMapper(ruleset))
+	// mappers = append(mappers, buildMapper(ruleset))
+	rulesets = append(rulesets, ruleset)
 
-	return seeds, mappers
+	return seeds, rulesets
+}
+
+func matchRuleset(rng numRange, rs []rule) []numRange {
+	newRanges := []numRange{}
+	toCheck := rng
+
+	done := false
+	for !done {
+		done = true
+		for _, r := range rs {
+			diff := r.dstStart - r.srcStart
+
+			if toCheck.start >= r.srcStart && toCheck.end <= r.srcEnd {
+				fmt.Println("Range", toCheck, "contained in rule", r)
+
+				newRanges = append(newRanges, numRange{
+					start: toCheck.start + diff,
+					end:   toCheck.end + diff,
+				})
+
+				break
+			}
+
+			if toCheck.start >= r.srcStart && toCheck.start <= r.srcEnd {
+				fmt.Println("Range", toCheck, "left is overlapping with rule", r)
+
+				newRanges = append(newRanges, numRange{
+					start: toCheck.start + diff,
+					end:   r.srcEnd + diff,
+				})
+
+				toCheck = numRange{
+					start: r.srcEnd + 1,
+					end:   toCheck.end,
+				}
+
+				done = false
+			}
+
+			if toCheck.end >= r.srcStart && toCheck.end <= r.srcEnd {
+				fmt.Println("Range", toCheck, "right is overlapping with rule", r)
+
+				toCheck = numRange{
+					start: toCheck.start,
+					end:   r.srcStart - 1,
+				}
+
+				newRanges = append(newRanges, numRange{
+					start: r.srcStart + diff,
+					end:   toCheck.end + diff,
+				})
+
+				done = false
+			}
+		}
+	}
+
+	if len(newRanges) == 0 {
+        return []numRange{rng}
+	} else {
+		return newRanges
+    }
 }
