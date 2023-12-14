@@ -6,7 +6,7 @@ func applyRuleset(rng numRange, rs []rule) []numRange {
 	calcRanges := []numRange{}
 	toCheck := []numRange{rng}
 
-    fmt.Println("---")
+	fmt.Println("---")
 	for len(toCheck) > 0 {
 		rng = toCheck[0]
 		toCheck = toCheck[1:]
@@ -29,8 +29,8 @@ func applyRuleset(rng numRange, rs []rule) []numRange {
 			calcRanges = append(calcRanges, match)
 			toCheck = append(toCheck, passes...)
 
-            rng = passes[0]
-            toCheck = toCheck[1:]
+			rng = passes[0]
+			toCheck = toCheck[1:]
 		}
 	}
 
