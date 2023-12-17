@@ -10,15 +10,15 @@ import (
 func main() {
 	dirs, network := parseNetwork("d08/input.txt")
 
-    n := 0
-    point := "AAA"
-    for point != "ZZZ" {
-        dir := getDirection(dirs, n)
-        point = network[point][dir]
-        n++
-    }
+	n := 0
+	point := "AAA"
+	for point != "ZZZ" {
+		dir := getDirection(dirs, n)
+		point = network[point][dir]
+		n++
+	}
 
-    fmt.Println(n)
+	fmt.Println(n)
 }
 
 // func parseNetwork takes a file path and parses the direction line (as a

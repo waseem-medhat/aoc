@@ -82,23 +82,23 @@ func handType(hand Hand) HandType {
 		return 0
 	}
 
-    // calculate frequencies
+	// calculate frequencies
 	for _, char := range hand.cards {
 		freqs[char]++
 	}
 
-    // get card with max freq
-    var maxCard rune
-    var maxFreq int
-    for card, freq := range freqs {
-        if card != 'J' && freq > maxFreq {
-            maxFreq = freq
-            maxCard = card
-        }
-    }
+	// get card with max freq
+	var maxCard rune
+	var maxFreq int
+	for card, freq := range freqs {
+		if card != 'J' && freq > maxFreq {
+			maxFreq = freq
+			maxCard = card
+		}
+	}
 
-    freqs[maxCard] += freqs['J']
-    delete(freqs, 'J')
+	freqs[maxCard] += freqs['J']
+	delete(freqs, 'J')
 
 	switch len(freqs) {
 	case 1:
