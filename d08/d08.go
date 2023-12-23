@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
+	"strings"
 )
 
 func main() {
 	dirs, network := parseNetwork("d08/input.txt")
 
+	// Part 1
 	n := 0
 	point := "AAA"
 	for point != "ZZZ" {
@@ -19,6 +22,38 @@ func main() {
 	}
 
 	fmt.Println(n)
+
+	// Part 2
+	bgnPoints := []string{}
+	endPoints := []string{}
+	for p := range network {
+		if strings.HasSuffix(p, "A") {
+			bgnPoints = append(bgnPoints, p)
+		}
+
+		if strings.HasSuffix(p, "Z") {
+			endPoints = append(endPoints, p)
+		}
+	}
+
+	distance := 1
+	for _, bp := range bgnPoints {
+		p := bp
+		var n = 0
+
+		for {
+			dir := getDirection(dirs, n)
+			p = network[p][dir]
+			n++
+			if slices.Contains(endPoints, p) {
+				break
+			}
+		}
+
+		distance = LCM(distance, n)
+	}
+
+	fmt.Println(distance)
 }
 
 // func parseNetwork takes a file path and parses the direction line (as a
@@ -69,4 +104,18 @@ func getDirection(dirs string, idx int) int {
 	default:
 		panic("Unexpected direction input!!")
 	}
+}
+
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+func LCM(a, b int) int {
+	result := a * b / GCD(a, b)
+	return result
 }
