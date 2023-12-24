@@ -22,7 +22,6 @@ func main() {
 
 	fmt.Println(fwExtSum)
 	fmt.Println(bwExtSum)
-
 }
 
 // extrapolateBw does the backward extrapolation (for part 2) of sequences
@@ -59,17 +58,20 @@ func extrapolateFw(historySeqs [][]int) int {
 	return extVal
 }
 
+// calcHistorySeqs takes a history (int slice) and calculates the difference
+// sequences up until they are all zeroes, returning a slice of int slices
 func calcHistorySeqs(history []int) [][]int {
 	seqs := [][]int{history}
 
 	allZeroes := false
 	for !allZeroes {
 		allZeroes = true
-		seq := seqs[len(seqs)-1]
+
+		lastSeq := seqs[len(seqs)-1]
 		newSeq := []int{}
 
-		for i := 1; i < len(seq); i++ {
-			num := seq[i] - seq[i-1]
+		for i := 1; i < len(lastSeq); i++ {
+			num := lastSeq[i] - lastSeq[i-1]
 			newSeq = append(newSeq, num)
 			if num != 0 {
 				allZeroes = false
@@ -82,6 +84,8 @@ func calcHistorySeqs(history []int) [][]int {
 	return seqs
 }
 
+// parseHistories parses the file at the given path and returns all the
+// histories as a slice of int slices
 func parseHistories(path string) [][]int {
 	f, _ := os.Open(path)
 	defer f.Close()
