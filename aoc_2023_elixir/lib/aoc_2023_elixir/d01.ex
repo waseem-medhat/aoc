@@ -1,13 +1,8 @@
 defmodule Aoc2023Elixir.D01 do
   def run() do
-    solve("lib/aoc_2023_elixir/d01/test1.txt")
-    |> IO.inspect(label: "test1")
-
-    solve("lib/aoc_2023_elixir/d01/test2.txt")
-    |> IO.inspect(label: "test2")
-
-    solve("lib/aoc_2023_elixir/d01/input.txt")
-    |> IO.inspect(label: "input")
+    solve("lib/aoc_2023_elixir/d01/test1.txt") |> IO.inspect(label: "test1")
+    solve("lib/aoc_2023_elixir/d01/test2.txt") |> IO.inspect(label: "test2")
+    solve("lib/aoc_2023_elixir/d01/input.txt") |> IO.inspect(label: "input")
 
     :ok
   end
