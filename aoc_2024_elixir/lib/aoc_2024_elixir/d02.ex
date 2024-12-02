@@ -10,6 +10,7 @@ defmodule Aoc2024Elixir.D02 do
     IO.puts("\nPART 2")
     solve_part_2(test_reports) |> IO.inspect(label: "test1")
     solve_part_2(input_reports) |> IO.inspect(label: "input")
+
     :ok
   end
 
@@ -76,9 +77,10 @@ defmodule Aoc2024Elixir.D02 do
   Determines if the removal of any element would make the report safe.
   """
   def has_safe_permutations?(report), do: has_safe_permutations?(report, 0)
-  def has_safe_permutations?(report, n) when n == length(report), do: false
 
-  def has_safe_permutations?(report, n) do
+  defp has_safe_permutations?(report, n) when n == length(report), do: false
+
+  defp has_safe_permutations?(report, n) do
     permutation = List.delete_at(report, n)
 
     case safe?(permutation) do
