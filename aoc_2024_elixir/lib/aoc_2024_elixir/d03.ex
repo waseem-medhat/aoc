@@ -24,62 +24,67 @@ defmodule Aoc2024Elixir.D03 do
   """
   defguard is_digit?(char) when char >= 48 and char <= 57
 
-  # start
+  @doc """
+  Parses the given instructions string.
+
+  The output is a list of any of these:
+  - "do" if it finds "do()"
+  - "dont" if it finds "don't()"
+  - a number that is the multiplication result of a valid "mult" expression
+
+  Note that the list is built using cons and will be in a reversed order.
+  """
   def parse(instructions),
     do: parse(instructions, [], [], [])
 
-  # end
   def parse("", _num_1, _num_2, parsed),
     do: parsed
 
-  # do's
-  def parse(<<"do()", rest::binary>>, _num_1, _num_2, parsed),
+  def parse("do()" <> rest, _num_1, _num_2, parsed),
     do: parse(rest, [], [], ["do" | parsed])
 
-  # dont's
-  def parse(<<"don't()", rest::binary>>, _num_1, _num_2, parsed),
+  def parse("don't()" <> rest, _num_1, _num_2, parsed),
     do: parse(rest, [], [], ["dont" | parsed])
 
-  # valid opening with digit after it
-  def parse(<<"mul(", char::utf8, rest::binary>>, _num_1, _num_2, parsed)
-      when is_digit?(char) do
-    parse(rest, [char], [], parsed)
-  end
+  def parse("mul(" <> <<char::utf8, rest::binary>>, _num_1, _num_2, parsed)
+      when is_digit?(char),
+      do: parse(rest, [char], [], parsed)
 
-  # invalid opening cause no digit after it
-  def parse(<<"mul(", _char::utf8, rest::binary>>, _num_1, _num_2, parsed),
+  def parse("mul(" <> <<_char::utf8, rest::binary>>, _num_1, _num_2, parsed),
     do: parse(rest, [], [], parsed)
 
-  # we have a num 1 and found a digit
   def parse(<<char::utf8, rest::binary>>, [_ | _] = num_1, [] = _num_2, parsed)
-      when is_digit?(char) do
-    parse(rest, [char | num_1], [], parsed)
-  end
+      when is_digit?(char),
+      do: parse(rest, [char | num_1], [], parsed)
 
-  # comma
-  def parse(<<",", char::utf8, rest::binary>>, [_ | _] = num_1, [] = _num_2, parsed)
+  def parse("," <> <<char::utf8, rest::binary>>, [_ | _] = num_1, [] = _num_2, parsed)
       when is_digit?(char),
       do: parse(rest, num_1, [char], parsed)
 
-  # we have a num 2 and found a digit
   def parse(<<char::utf8, rest::binary>>, [_ | _] = num_1, [_ | _] = num_2, parsed)
       when is_digit?(char),
       do: parse(rest, num_1, [char | num_2], parsed)
 
-  # closer
-  def parse(<<")", rest::binary>>, [_ | _] = num_1, [_ | _] = num_2, parsed) do
+  def parse(")" <> rest, [_ | _] = num_1, [_ | _] = num_2, parsed) do
     num_1 = num_1 |> Enum.reverse() |> to_string() |> String.to_integer()
     num_2 = num_2 |> Enum.reverse() |> to_string() |> String.to_integer()
 
     parse(rest, [], [], [num_1 * num_2 | parsed])
   end
 
-  # anything else is invalid
   def parse(<<_::utf8, rest::binary>>, _num_1, _num_2, parsed),
     do: parse(rest, [], [], parsed)
 
+  @doc """
+  Given the parsed list, calculates the result based on part 1, which is simply
+  the sum of all numbers (multiplication results).
+  """
   def caluclate_part_1(parsed), do: parsed |> Enum.filter(&is_number/1) |> Enum.sum()
 
+  @doc """
+  Given the parsed list, calculates the result based on part 2, in which the
+  occurrence of a "dont" ignores all subsequent numbers.
+  """
   def caluclate_part_2(parsed), do: parsed |> Enum.reverse() |> calculate_part_2(0, :do)
 
   def calculate_part_2([], acc, _), do: acc
