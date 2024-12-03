@@ -9,12 +9,12 @@ defmodule Aoc2024Elixir.D03 do
     input_parsed = parse(input_instructions)
 
     IO.puts("PART 1")
-    test1_parsed |> caluclate_part_1() |> IO.inspect(label: "test1")
-    input_parsed |> caluclate_part_1() |> IO.inspect(label: "input")
+    test1_parsed |> calculate_part_1() |> IO.inspect(label: "test1")
+    input_parsed |> calculate_part_1() |> IO.inspect(label: "input")
 
     IO.puts("\nPART 2")
-    test2_parsed |> caluclate_part_2() |> IO.inspect(label: "test2")
-    input_parsed |> caluclate_part_2() |> IO.inspect(label: "input")
+    test2_parsed |> calculate_part_2() |> IO.inspect(label: "test2")
+    input_parsed |> calculate_part_2() |> IO.inspect(label: "input")
 
     :ok
   end
@@ -22,7 +22,7 @@ defmodule Aoc2024Elixir.D03 do
   @doc """
   Checks if the given char (integer) is a digit.
   """
-  defguard is_digit?(char) when char >= 48 and char <= 57
+  defguard is_digit?(char) when char >= ?0 and char <= ?9
 
   @doc """
   Parses the given instructions string.
@@ -79,13 +79,13 @@ defmodule Aoc2024Elixir.D03 do
   Given the parsed list, calculates the result based on part 1, which is simply
   the sum of all numbers (multiplication results).
   """
-  def caluclate_part_1(parsed), do: parsed |> Enum.filter(&is_number/1) |> Enum.sum()
+  def calculate_part_1(parsed), do: parsed |> Enum.filter(&is_number/1) |> Enum.sum()
 
   @doc """
   Given the parsed list, calculates the result based on part 2, in which the
   occurrence of a "dont" ignores all subsequent numbers.
   """
-  def caluclate_part_2(parsed), do: parsed |> Enum.reverse() |> calculate_part_2(0, :do)
+  def calculate_part_2(parsed), do: parsed |> Enum.reverse() |> calculate_part_2(0, :do)
 
   def calculate_part_2([], acc, _), do: acc
   def calculate_part_2(["dont" | tail], acc, _), do: calculate_part_2(tail, acc, :dont)
