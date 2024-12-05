@@ -48,6 +48,8 @@ defmodule Aoc2024Elixir.D05 do
 
   @doc """
   Solves part 1: filters valid updates and sums their middle numbers.
+
+  Fetching the middle number assumes that all updates have odd lengths.
   """
   def solve_part_1({rules, updates}) do
     updates
@@ -62,6 +64,8 @@ defmodule Aoc2024Elixir.D05 do
   @doc """
   Solves part2: filters invalid updates, reorders them, then sums their middle
   numbers.
+
+  Fetching the middle number assumes that all updates have odd lengths.
   """
   def solve_part_2({rules, updates}) do
     updates
@@ -90,8 +94,8 @@ defmodule Aoc2024Elixir.D05 do
   Given an update and the rule set, sorts the update into the correct order.
 
   The sorter works by calculating a score through counting the times that
-  number appears the the first one in the two-tuple rules. The higher the
-  number, the earlier that number should be in the list.
+  number appears in the two-tuple rules as the first element. The higher the
+  score, the earlier that number should be in the sorted list.
   """
   def reorder(update, rules) do
     rules = Enum.filter(rules, fn {n1, n2} -> n1 in update and n2 in update end)
