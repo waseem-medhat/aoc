@@ -4,6 +4,10 @@ defmodule Aoc2024Elixir.D06 do
     parse("lib/aoc_2024_elixir/d06/test1.txt") |> solve_part_1() |> IO.inspect(label: "test1")
     parse("lib/aoc_2024_elixir/d06/input.txt") |> solve_part_1() |> IO.inspect(label: "input")
 
+    IO.puts("\nPART 2")
+    parse("lib/aoc_2024_elixir/d06/test1.txt") |> solve_part_2() |> IO.inspect(label: "test1")
+    parse("lib/aoc_2024_elixir/d06/input.txt") |> solve_part_2() |> IO.inspect(label: "input")
+
     :ok
   end
 
@@ -61,11 +65,31 @@ defmodule Aoc2024Elixir.D06 do
   up.
   """
   def solve_part_1({map, start_pos}) do
-    walk(start_pos, map, :up, %{})
+    {visited_coords, false} = walk(start_pos, map, :up, %{})
+
+    visited_coords
+    |> Map.keys()
+    |> length()
   end
 
   @doc """
-  Utility to move coords in a certain direction.
+  Solves part 2 by recording visited coordinates from part 1, and for each one
+  of those, replace the character at the coordinates with "#" and check if it
+  causes a loop.
+  """
+  def solve_part_2({map, start_pos}) do
+    {visited_coords, false} = walk(start_pos, map, :up, %{})
+
+    Enum.filter(visited_coords, fn {coords, _} ->
+      map = Map.put(map, coords, "#")
+      {_, looped?} = walk(start_pos, map, :up, %{})
+      looped?
+    end)
+    |> length()
+  end
+
+  @doc """
+  Utility to move coordinates in a certain direction.
   """
   def shift({i, j}, :up), do: {i - 1, j}
   def shift({i, j}, :down), do: {i + 1, j}
@@ -90,26 +114,41 @@ defmodule Aoc2024Elixir.D06 do
 
   @doc """
   Recursively walks the map in the specified direction, recording all visited
-  coordinates until leaving the map.
+  coordinates until:
+  - Leaving the map
+  - Looping back into the start position (in the same direction)
+
+  Returns a two-tuple of:
+  - Visited coordinate/direction combinations as a map of coordinates =>
+  direction list
+  - Boolean for whether or the walk entered a loop
   """
   def walk(coords, map, dir, visited_coords) do
-    visited_coords = Map.put(visited_coords, coords, true)
+    dirs_in_coord = Map.get(visited_coords, coords, [])
 
-    case look_ahead(coords, map, dir) do
-      "." ->
-        coords = shift(coords, dir)
-        walk(coords, map, dir, visited_coords)
+    case dir in dirs_in_coord do
+      true ->
+        {visited_coords, true}
 
-      "^" ->
-        coords = shift(coords, dir)
-        walk(coords, map, dir, visited_coords)
+      false ->
+        visited_coords = Map.put(visited_coords, coords, [dir | dirs_in_coord])
 
-      "#" ->
-        dir = turn(dir)
-        walk(coords, map, dir, visited_coords)
+        case look_ahead(coords, map, dir) do
+          "." ->
+            coords = shift(coords, dir)
+            walk(coords, map, dir, visited_coords)
 
-      nil ->
-        visited_coords |> Map.keys() |> length()
+          "^" ->
+            coords = shift(coords, dir)
+            walk(coords, map, dir, visited_coords)
+
+          "#" ->
+            dir = turn(dir)
+            walk(coords, map, dir, visited_coords)
+
+          nil ->
+            {visited_coords, false}
+        end
     end
   end
 end
