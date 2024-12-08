@@ -26,18 +26,13 @@ defmodule Aoc2024Elixir.D07 do
   def parse_equation(line) do
     [calibration_val, operands] = line |> String.split(":", trim: true)
     calibration_val = String.to_integer(calibration_val)
-
-    operands =
-      operands
-      |> String.trim()
-      |> String.split(" ")
-      |> Enum.map(&String.to_integer/1)
+    operands = operands |> String.trim() |> String.split(" ") |> Enum.map(&String.to_integer/1)
 
     {calibration_val, operands}
   end
 
   @doc """
-  Solves part by adding the calibration values of valid equation.
+  Solves part 1 by adding the calibration values of valid equation.
   """
   def solve_part_1(equations) do
     equations
@@ -48,6 +43,10 @@ defmodule Aoc2024Elixir.D07 do
     end)
   end
 
+  @doc """
+  Solves part 2 by adding the calibration values of valid equation, including
+  concatenation operations.
+  """
   def solve_part_2(equations) do
     equations
     |> Enum.reduce(0, fn {calibration_val, operands}, acc ->
@@ -69,26 +68,26 @@ defmodule Aoc2024Elixir.D07 do
   @doc """
   Recursively accumulates the results of operations.
 
-  Returns `false` if at any point the result exceeded the expected value.
+  Returns `false` if at any point the result exceeded the calibration value.
   """
   def valid_equation?(operands, calibration_val, include_concat?, acc)
 
-  # no operands remain: compare result to expected
+  # no operands remain: compare result to calibration val
   def valid_equation?([], calibration_val, _, acc), do: acc == calibration_val
 
-  # return false any time `acc` exceeds the expected results 
+  # `acc` exceeded the calibration val: return false
   def valid_equation?(_, calibration_val, _, acc)
       when acc > calibration_val,
       do: false
 
-  def valid_equation?([head | tail], calibration_val, false = _include_concat?, acc) do
+  def valid_equation?([head | tail], calibration_val, false, acc) do
     valid_for_add? = valid_equation?(tail, calibration_val, false, head + acc)
     valid_for_mult? = valid_equation?(tail, calibration_val, false, head * acc)
 
     valid_for_add? or valid_for_mult?
   end
 
-  def valid_equation?([head | tail], calibration_val, true = _include_concat?, acc) do
+  def valid_equation?([head | tail], calibration_val, true, acc) do
     valid_for_add? = valid_equation?(tail, calibration_val, true, acc + head)
     valid_for_mult? = valid_equation?(tail, calibration_val, true, acc * head)
     valid_for_concat? = valid_equation?(tail, calibration_val, true, concat(acc, head))
