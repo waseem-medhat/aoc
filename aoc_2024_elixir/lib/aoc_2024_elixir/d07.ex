@@ -11,15 +11,21 @@ defmodule Aoc2024Elixir.D07 do
     :ok
   end
 
+  @doc """
+  Parses the entire file with the given path.
+  """
   def parse(path) do
     File.read!(path)
     |> String.split("\n", trim: true)
     |> Enum.map(&parse_equation/1)
   end
 
+  @doc """
+  Parses the equation in the given line.
+  """
   def parse_equation(line) do
-    [expected_result, operands] = line |> String.split(":", trim: true)
-    expected_result = String.to_integer(expected_result)
+    [calibration_val, operands] = line |> String.split(":", trim: true)
+    calibration_val = String.to_integer(calibration_val)
 
     operands =
       operands
@@ -27,76 +33,71 @@ defmodule Aoc2024Elixir.D07 do
       |> String.split(" ")
       |> Enum.map(&String.to_integer/1)
 
-    {expected_result, operands}
+    {calibration_val, operands}
   end
 
+  @doc """
+  Solves part by adding the calibration values of valid equation.
+  """
   def solve_part_1(equations) do
     equations
-    |> Enum.reduce(0, fn {expected_result, operands}, acc ->
-      if valid_equation?(operands, expected_result, false),
-        do: expected_result + acc,
+    |> Enum.reduce(0, fn {calibration_val, operands}, acc ->
+      if valid_equation?(operands, calibration_val, false),
+        do: calibration_val + acc,
         else: acc
     end)
   end
 
   def solve_part_2(equations) do
     equations
-    |> Enum.reduce(0, fn {expected_result, operands}, acc ->
-      if valid_equation?(operands, expected_result, true),
-        do: expected_result + acc,
+    |> Enum.reduce(0, fn {calibration_val, operands}, acc ->
+      if valid_equation?(operands, calibration_val, true),
+        do: calibration_val + acc,
         else: acc
     end)
   end
 
-  def valid_equation?(operands, expected_result, include_concat) do
-    permutations = operands |> length() |> gen_permutations(include_concat)
+  @doc """
+  Checks if an equation is valid by executing all permutations of operation
+  sequences until one of them matches.
 
-    Enum.reduce_while(permutations, false, fn perm, _acc ->
-      result = execute_permutation(perm, operands, expected_result)
-      if result == expected_result, do: {:halt, true}, else: {:cont, false}
-    end)
+  It initializes values needed for `valid_equation?/4`.
+  """
+  def valid_equation?([head | tail], calibration_val, include_concat?),
+    do: valid_equation?(tail, calibration_val, include_concat?, head)
+
+  @doc """
+  Recursively accumulates the results of operations.
+
+  Returns `false` if at any point the result exceeded the expected value.
+  """
+  def valid_equation?(operands, calibration_val, include_concat?, acc)
+
+  # no operands remain: compare result to expected
+  def valid_equation?([], calibration_val, _, acc), do: acc == calibration_val
+
+  # return false any time `acc` exceeds the expected results 
+  def valid_equation?(_, calibration_val, _, acc)
+      when acc > calibration_val,
+      do: false
+
+  def valid_equation?([head | tail], calibration_val, false = _include_concat?, acc) do
+    valid_for_add? = valid_equation?(tail, calibration_val, false, head + acc)
+    valid_for_mult? = valid_equation?(tail, calibration_val, false, head * acc)
+
+    valid_for_add? or valid_for_mult?
+  end
+
+  def valid_equation?([head | tail], calibration_val, true = _include_concat?, acc) do
+    valid_for_add? = valid_equation?(tail, calibration_val, true, acc + head)
+    valid_for_mult? = valid_equation?(tail, calibration_val, true, acc * head)
+    valid_for_concat? = valid_equation?(tail, calibration_val, true, concat(acc, head))
+
+    valid_for_add? or valid_for_mult? or valid_for_concat?
   end
 
   @doc """
-  Note that `n` is the number of OPERANDS, so each permutation will have n-1
-  operations.
+  Utility function to concat two numbers together.
   """
-  def gen_permutations(1, false), do: []
-  def gen_permutations(2, false), do: [[:mult], [:add]]
-
-  def gen_permutations(n, false) do
-    gen_permutations(n - 1, false)
-    |> Enum.flat_map(fn perm -> [[:mult | perm], [:add | perm]] end)
-  end
-
-  def gen_permutations(1, true), do: []
-  def gen_permutations(2, true), do: [[:mult], [:add], [:concat]]
-
-  def gen_permutations(n, true) do
-    gen_permutations(n - 1, true)
-    |> Enum.flat_map(fn perm -> [[:mult | perm], [:add | perm], [:concat | perm]] end)
-  end
-
-  @doc """
-  Executes a single permutation of operations on the results.
-
-  Returns the execution result as a number, or `:too_large`.
-  """
-  def execute_permutation(perm, operands, expected_result) do
-    [initial | operands] = operands
-
-    Enum.zip(operands, perm)
-    |> Enum.reduce_while(initial, fn {operand, operation}, acc ->
-      acc =
-        case operation do
-          :add -> acc + operand
-          :mult -> acc * operand
-          :concat -> concat(acc, operand)
-        end
-
-      if acc > expected_result, do: {:halt, :too_large}, else: {:cont, acc}
-    end)
-  end
-
   def concat(n1, n2), do: String.to_integer("#{n1}#{n2}")
 end
