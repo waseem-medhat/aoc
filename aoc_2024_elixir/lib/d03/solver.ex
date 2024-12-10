@@ -1,20 +1,16 @@
-defmodule Aoc2024Elixir.D03 do
+defmodule D03.Solver do
   def run() do
-    test1_instructions = File.read!("lib/aoc_2024_elixir/d03/test1.txt")
-    test2_instructions = File.read!("lib/aoc_2024_elixir/d03/test2.txt")
-    input_instructions = File.read!("lib/aoc_2024_elixir/d03/input.txt")
-
-    test1_parsed = parse(test1_instructions)
-    test2_parsed = parse(test2_instructions)
-    input_parsed = parse(input_instructions)
+    test1_instructions = File.read!("lib/d03/test1.txt")
+    test2_instructions = File.read!("lib/d03/test2.txt")
+    input_instructions = File.read!("lib/d03/input.txt")
 
     IO.puts("PART 1")
-    test1_parsed |> calculate_part_1() |> IO.inspect(label: "test1")
-    input_parsed |> calculate_part_1() |> IO.inspect(label: "input")
+    parse(test1_instructions) |> calculate_part_1() |> IO.inspect(label: "test1")
+    parse(input_instructions) |> calculate_part_1() |> IO.inspect(label: "input")
 
     IO.puts("\nPART 2")
-    test2_parsed |> calculate_part_2() |> IO.inspect(label: "test2")
-    input_parsed |> calculate_part_2() |> IO.inspect(label: "input")
+    parse(test2_instructions) |> calculate_part_2() |> IO.inspect(label: "test2")
+    parse(input_instructions) |> calculate_part_2() |> IO.inspect(label: "input")
 
     :ok
   end

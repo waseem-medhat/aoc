@@ -1,14 +1,14 @@
-defmodule Aoc2024Elixir.D09 do
+defmodule D09.Solver do
   def run() do
     IO.puts("PART1")
-    parse("lib/aoc_2024_elixir/d09/test1.txt") |> solve_part_1() |> IO.inspect(label: "test1")
-    parse("lib/aoc_2024_elixir/d09/test2.txt") |> solve_part_1() |> IO.inspect(label: "test2")
-    parse("lib/aoc_2024_elixir/d09/input.txt") |> solve_part_1() |> IO.inspect(label: "input")
+    parse("lib/d09/test1.txt") |> solve_part_1() |> IO.inspect(label: "test1")
+    parse("lib/d09/test2.txt") |> solve_part_1() |> IO.inspect(label: "test2")
+    parse("lib/d09/input.txt") |> solve_part_1() |> IO.inspect(label: "input")
 
     IO.puts("\nPART2")
 
-    # parse_map("lib/aoc_2024_elixir/d08/test1.txt") |> solve_part_2() |> IO.inspect(label: "test1")
-    # parse_map("lib/aoc_2024_elixir/d08/input.txt") |> solve_part_2() |> IO.inspect(label: "input")
+    # parse_map("lib/d08/test1.txt") |> solve_part_2() |> IO.inspect(label: "test1")
+    # parse_map("lib/d08/input.txt") |> solve_part_2() |> IO.inspect(label: "input")
 
     :ok
   end
