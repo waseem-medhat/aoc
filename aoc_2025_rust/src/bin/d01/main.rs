@@ -1,10 +1,10 @@
 use std::fs;
 
 fn main() {
-    let test1 = fs::read_to_string("data/day01/test1.txt").unwrap();
+    let test1 = fs::read_to_string("data/d01/test1.txt").unwrap();
     let (test1_p1, test1_p2) = count(&test1);
 
-    let input = fs::read_to_string("data/day01/input.txt").unwrap();
+    let input = fs::read_to_string("data/d01/input.txt").unwrap();
     let (input_p1, input_p2) = count(&input);
 
     println!("p1, test: {}", test1_p1);
