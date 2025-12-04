@@ -46,7 +46,6 @@ fn solve_p2(map: &mut Map) -> u16 {
         if removed_in_loop == 0 {
             break;
         }
-        // println!("adding {} to count", removed_in_loop);
         count += removed_in_loop;
     }
     count
@@ -56,28 +55,35 @@ fn count_adjacent(map: &Map, line_idx: usize, char_idx: usize) -> u16 {
     let last_line_idx = map.len() - 1;
     let last_char_idx = map[line_idx].len() - 1;
 
-    let top = (line_idx != 0 && map[line_idx - 1][char_idx] == '@') as u16;
+    // clamped indices to be used for top and bottom slices
+    let clamped_left_idx = char_idx.saturating_sub(1);
+    let clamped_right_idx = (char_idx + 1).min(last_char_idx);
 
-    let top_left =
-        (line_idx != 0 && char_idx != 0 && map[line_idx - 1][char_idx - 1] == '@') as u16;
+    let mut count = 0;
 
-    let top_right = (line_idx != 0
-        && char_idx != last_char_idx
-        && map[line_idx - 1][char_idx + 1] == '@') as u16;
+    // top 3
+    if line_idx != 0 {
+        let top_slice = &map[line_idx - 1][clamped_left_idx..=clamped_right_idx];
+        count += top_slice
+            .iter()
+            .map(|char| (*char == '@') as u16)
+            .sum::<u16>()
+    }
 
-    let bottom = (line_idx != last_line_idx && map[line_idx + 1][char_idx] == '@') as u16;
+    // bottom 3
+    if line_idx != last_line_idx {
+        let bottom_slice = &map[line_idx + 1][clamped_left_idx..=clamped_right_idx];
+        count += bottom_slice
+            .iter()
+            .map(|char| (*char == '@') as u16)
+            .sum::<u16>()
+    }
 
-    let bottom_left = (line_idx != last_line_idx
-        && char_idx != 0
-        && map[line_idx + 1][char_idx - 1] == '@') as u16;
+    // left
+    count += (char_idx != 0 && map[line_idx][char_idx - 1] == '@') as u16;
 
-    let bottom_right = (line_idx != last_line_idx
-        && char_idx != last_char_idx
-        && map[line_idx + 1][char_idx + 1] == '@') as u16;
+    // right
+    count += (char_idx != last_char_idx && map[line_idx][char_idx + 1] == '@') as u16;
 
-    let left = (char_idx != 0 && map[line_idx][char_idx - 1] == '@') as u16;
-
-    let right = (char_idx != last_char_idx && map[line_idx][char_idx + 1] == '@') as u16;
-
-    top + top_left + top_right + bottom + bottom_left + bottom_right + left + right
+    count
 }
