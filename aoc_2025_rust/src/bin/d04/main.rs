@@ -4,11 +4,11 @@ fn main() {
     let test1 = fs::read_to_string("data/d04/test1.txt").unwrap();
     let input = fs::read_to_string("data/d04/input.txt").unwrap();
 
-    println!("p1, test1: {}", solve(&parse(&test1)));
-    println!("p1, input: {}", solve(&parse(&input)));
+    println!("p1, test1: {}", solve_p1(&parse(&test1)));
+    println!("p1, input: {}", solve_p1(&parse(&input)));
 
-    // println!("p2, test1: {}", solve(&test1));
-    // println!("p2, input: {}", input_p2);
+    println!("p2, test1: {}", solve_p2(&mut parse(&test1)));
+    println!("p2, input: {}", solve_p2(&mut parse(&input)));
 }
 
 type Map = Vec<Vec<char>>;
@@ -17,7 +17,7 @@ fn parse(input: &str) -> Map {
     input.lines().map(|line| line.chars().collect()).collect()
 }
 
-fn solve(map: &Map) -> u16 {
+fn solve_p1(map: &Map) -> u16 {
     let mut count = 0;
     for i in 0..map.len() {
         let line = &map[i];
@@ -26,6 +26,28 @@ fn solve(map: &Map) -> u16 {
                 count += 1;
             }
         }
+    }
+    count
+}
+
+fn solve_p2(map: &mut Map) -> u16 {
+    let mut count = 0;
+    loop {
+        let mut removed_in_loop = 0;
+        for i in 0..map.len() {
+            let line = &map[i];
+            for j in 0..line.len() {
+                if map[i][j] == '@' && count_adjacent(map, i, j) < 4 {
+                    map[i][j] = '.';
+                    removed_in_loop += 1;
+                }
+            }
+        }
+        if removed_in_loop == 0 {
+            break;
+        }
+        // println!("adding {} to count", removed_in_loop);
+        count += removed_in_loop;
     }
     count
 }
